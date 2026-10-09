@@ -1,5 +1,6 @@
 import java.net.ServerSocket
 import java.net.Socket
+import java.net.SocketException
 
 //Fes un programa servidor que:
 //
@@ -31,4 +32,31 @@ fun main() {
     }
 }
 
-fun atendreClient(clientSocket: Socket) {}
+fun atendreClient(clientSocket: Socket) {
+
+    clientSocket.use { client ->
+        val reader = client.getInputStream().bufferedReader()
+        val writer = client.getOutputStream().bufferedWriter()
+
+        var resultat = 0
+
+    try{
+        var linia: String? = reader.readLine()
+        while (linia != null && !linia.equals("FINAL", ignoreCase = true)) {
+            try {
+                resultat += linia.toInt()
+            } catch (e: NumberFormatException) {
+                writer.write("nombre invalid: $linia")
+            }
+        }
+        if(linia.equals("FINAL", ignoreCase = true)) {
+            writer.write("La suma total es: $resultat")
+            writer.flush()
+        }
+
+    } catch (ex: SocketException) {
+            println("[Servidor] La connexió amb el client s'ha interromput inesperadament.")
+        }
+        println("[Servidor] Finalitzada la sessió amb el client:${client.remoteSocketAddress}")
+    }
+}
